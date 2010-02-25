@@ -1,35 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+ 
 import pyglet
 from pyglet.window import mouse
 import sys
 import math
 import random
 from threading import Lock
-
+ 
 window = pyglet.window.Window()
 window.label = pyglet.text.Label("", font_name="Arial", font_size=256,x=window.width//2,y=window.height//2,anchor_x='center',anchor_y="center")
-
+ 
 window.label_batch = pyglet.graphics.Batch()
-
+ 
 # Special labels
 window.game_over = pyglet.text.Label("Game Over!", font_name="Arial", font_size=50,
     x=window.width//2,y=window.height//2+50,anchor_x='center',anchor_y="center")
-window.splash = pyglet.text.Label("Mouse Destroyer!", font_name="Arial", font_size=50, 
+window.splash = pyglet.text.Label("Mouse Destroyer!", font_name="Arial", font_size=50,
     x=window.width//2,y=window.height//2+50,anchor_x='center',anchor_y="center")
-window.instruction = pyglet.text.Label("press 'n' to play", font_name="Arial", font_size=32, 
+window.instruction = pyglet.text.Label("press 'n' to play", font_name="Arial", font_size=32,
     x=window.width//2,y=window.height//2-50,anchor_x='center',anchor_y="center")
-
+ 
 window.lives_label = pyglet.text.Label("", font_name="Arial", font_size=32, x=20, y=30, anchor_x='left', anchor_y="center", batch=window.label_batch)
 window.score_label = pyglet.text.Label("", font_name="Arial", font_size=32, x=window.width-20,y=30,anchor_x='right',anchor_y="center", batch=window.label_batch)
 window.lives_text = pyglet.text.Label("Lives", font_name="Arial", font_size=32, x=20, y=70, anchor_x='left', anchor_y="center", batch=window.label_batch)
 window.score_text = pyglet.text.Label("Score", font_name="Arial", font_size=32, x=window.width-20,y=70,anchor_x='right',anchor_y="center", batch=window.label_batch)
-
+ 
 background = pyglet.resource.image("images/bg.png")
 window.monster = pyglet.resource.image("images/monster.png")
 window.tower = pyglet.resource.image("images/tower.png")
-
+ 
 #window.set_icon(window.monster)
 window.monsters = []
 window.towers = []
@@ -60,7 +60,7 @@ def on_text(text):
             
     window.label.text = text
     window.alpha = 1.0
-
+ 
 @window.event
 def on_mouse_press(x, y, button, modifiers):
     #print "Clicked: %s %s %s" % (x, y, button)
@@ -114,7 +114,7 @@ def update(dt):
                     
         if monster.live:
             monster.y_speed += 30*dt
-            monster.y -= dt * monster.y_speed 
+            monster.y -= dt * monster.y_speed
             monster.x += dt * monster.x_speed
             
             if monster.y < -40:
@@ -138,6 +138,6 @@ def update(dt):
     window.monsters = monsters
     window.towers = towers
     
-
+ 
 pyglet.clock.schedule_interval(update, 1/60.0)
 pyglet.app.run()

@@ -12,6 +12,8 @@ window = pyglet.window.Window()
 
 class Tower(pyglet.sprite.Sprite):
     def __init__(self, x, y):
+        
+        self.base = pyglet.sprite.Sprite(window.tower_base,batch=window.tower_batch,x=x,y=y)
         super(Tower,self).__init__(window.tower,batch=window.tower_batch, x=x,y=y)
         self.x_speed = 30.0*(random.random()-0.5)
         self.y_speed = 10+5.0*(random.random())
@@ -24,12 +26,13 @@ class Tower(pyglet.sprite.Sprite):
 class Monster(pyglet.sprite.Sprite):
     def __init__(self):
         super(Monster,self).__init__(window.monster,batch=window.monster_batch, x=random.randint(100,window.width-120),y=window.height+20)
-        self.x_speed = 20.0*(random.random()-0.5)
-        self.y_speed = 10+5.0*(random.random())
-        self.live = True
+        self.x_speed = 0 #20.0*(random.random()-0.5)
+        self.y_speed = 60+40.0*(random.random())
+        self.lives = 2
+        
     
     def center(self):
-        return (self.x+15,self.y+15)
+        return (self.x,self.y)
         
 class Shot(pyglet.sprite.Sprite):    
     def __init__(self, tower, monster):
@@ -96,14 +99,14 @@ def on_draw():
 def calc_angle(origin,target):
     ox,oy = origin.center()
     tx,ty = target.center()
-    return math.pi-math.atan2(oy-ty, ox-tx)*57.295779513082323
+    return  -90-(math.atan2(oy-ty, ox-tx))*57.295779513082323
     
     
 def update(dt):
     window.t += dt
     if window.lives > 0:
         window.monstertime += dt
-        monstery = 0.3/(1+window.t*0.05)
+        monstery = 0.5/(1+window.t*0.075)
         if window.monstertime > monstery and monstery > 0.000001:
             monsters = math.floor(window.monstertime / monstery)
             for i in xrange(int(monsters)):
@@ -123,46 +126,42 @@ def update(dt):
     window.alpha -= dt
     first = True
     for missile in window.missiles:
-        if not missile.monster or not missile.monster.live:
+        if not missile.monster or not missile.monster.lives:
             # Monster has disappeared :(
             missile.live = False
-        dx = missile.monster.x + 16 - missile.x
-        dy = missile.monster.y + 16 - missile.y
+        dx = missile.monster.x - missile.x
+        dy = missile.monster.y - missile.y
         if (dx**2 + dy**2) <= (dt*missile.speed)**2:
             # HIT!
-            missile.monster.live = False
+            missile.monster.lives = max(0, missile.monster.lives-1)
             missile.live = False
-            window.cash += 5
-            window.score += 1
-        elif abs(dx) > 0.00000001:
-            angle = dy/dx
-            dxx = math.cos(math.atan(angle))
-            dyy = math.sin(math.atan(angle))
-            if dx < 0.0:
-                dxx = -dxx
-                dyy = -dyy                
+            if missile.monster.lives == 0:
+                window.cash += 5
+                window.score += 1
+        else:
+            angle = math.atan2(dy,dx)
+            dxx = math.cos(angle)
+            dyy = math.sin(angle)     
             missile.x += missile.speed * dt * dxx
             missile.y += missile.speed * dt * dyy
-        else:
-            missile.y += missile.speed * dt * dy
         first = False
     for monster in window.monsters:
         if window.lives > 0:
             for tower in window.towers:
-                if tower.live and monster.live:
+                if tower.live and monster.lives:
                     if tower.cooldown < 0.0  and (monster.x - tower.x)**2 + (monster.y - tower.y)**2 < 10000:
                         tower.rotation=calc_angle(tower, monster)
                         window.missiles.append(Shot(tower,monster))
                         tower.cooldown = 0.5
 
-        if monster.live:
-            monster.y_speed += 30*dt
+        if monster.lives:
+            #monster.y_speed += 30*dt
             monster.y -= dt * monster.y_speed 
             monster.x += dt * monster.x_speed
 
             if monster.y < -40:
                 window.lives = max(0, window.lives-1)
-                monster.live = False
+                monster.lives = 0
 
     dead_stuff = [s for s in window.towers if not s.live]
     for dead in dead_stuff:
@@ -170,12 +169,12 @@ def update(dt):
     dead_stuff = [s for s in window.missiles if not s.live]
     for dead in dead_stuff:
         dead.delete()
-    dead_stuff = [s for s in window.monsters if not s.live]
+    dead_stuff = [s for s in window.monsters if not s.lives]
     for dead in dead_stuff:
         dead.delete()
     
     towers = [tower for tower in window.towers if tower.live]
-    monsters = [monster for monster in window.monsters if monster.live]
+    monsters = [monster for monster in window.monsters if monster.lives]
     missiles = [missile for missile in window.missiles if missile.live]
     
     window.monsters = monsters
@@ -204,10 +203,18 @@ if __name__ == "__main__":
     
     background = pyglet.resource.image("images/bg.png")
     window.monster = pyglet.resource.image("images/monster.png")
+    window.monster.anchor_x = 17
+    window.monster.anchor_y = 17
+    
     window.shot = pyglet.resource.image("images/shot1.png")
     window.tower = pyglet.resource.image("images/tower.png")
-    window.tower.anchor_x = 16
-    window.tower.anchor_y = 16
+    window.tower.anchor_x = 16.5
+    window.tower.anchor_y = 16.5
+    
+    window.tower_base = pyglet.resource.image("images/towerbase.png")
+    window.tower_base.anchor_x = 16.5
+    window.tower_base.anchor_y = 16.5
+
     
     window.monsters = []
     window.towers = []

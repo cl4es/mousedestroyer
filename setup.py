@@ -8,7 +8,7 @@ import os
 print sys.path
 
 # The main entry point of the program
-script_file = 'mousedestroyer.py'
+script_file = 'bubbledefender.py'
 
 
 image_files = []
